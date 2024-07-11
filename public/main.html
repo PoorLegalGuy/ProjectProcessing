@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>项目进度管理系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./main.css">
+</head>
+<body>
+    <!-- 模态框 -->-->
+    <div class="modal fade" id="exampleModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-lg-down">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="exampleModal2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-lg-down">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel2">Modal title</h1>
+                <button type="button" class="btn-close" data-bs-toggle="modal" data-bs-target="#exampleModal"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+            </div>
+            </div>
+        </div>
+    </div>
+    <!-- 标题及菜单栏 -->
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-3">
+            <!-- <div class="container-fluid"> -->
+                <a id="nav_title" class="navbar-brand" href="#/">项目进度管理系统</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a id="user_m" class="nav-link" href="#user_manage">用户管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a id="project_m" class="nav-link" href="#project_manage">项目管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a id="task_m" class="nav-link" href="#task_manage">任务管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a id="sys_log" class="nav-link" href="#log">系统日志</a>
+                        </li>
+                        <li class="nav-item">
+                            <a id="user_resetPassword" class="nav-link" href="#user_resetPassword">修改密码</a>
+                        </li>
+                        <li class="nav-item">
+                            <a id="logout_btn" class="nav-link" href="#logout">退出登录</a>
+                        </li>
+                    </ul>
+                </div>
+            <!-- </div> -->
+        </nav>
+    </div>
+
+    <!-- 页面内容 -->
+    <div id="content" class="container-fluid"></div>
+
+    <!-- 浏览器底部固定内容，显示当前登录用户 -->
+    <footer id="footer">
+        <div class="user-info">
+            <p></p>
+        </div>
+    </footer>
+
+<!-- <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha1/js/bootstrap.bundle.min.js"></script>
+<!-- 自定义JS -->
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

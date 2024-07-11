@@ -1,0 +1,26 @@
+#navbarNav .active {
+    color: #007bff;
+    font-weight: bold;
+}
+
+#content {
+    margin-top: 65px;
+}
+
+#footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 2px 0;
+}
+
+#footer p {
+    margin: 0;
+}
+
+.user-info {
+    display: inline-block;
+}
