@@ -1,1 +1,0 @@
-本目录下的node_modules依赖基于windows系统，当复制文件至linux系统时，需要重新安装依赖。
