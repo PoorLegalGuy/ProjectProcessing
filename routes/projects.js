@@ -58,13 +58,18 @@ router.post('/add', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
-            const [result] = await common.pool.query(`INSERT INTO projects (project_name, start_date, end_date, description, status, manager_id) VALUES ('${req.body.project_name}', '${req.body.start_date}', '${req.body.end_date}', '${req.body.description}', '${req.body.status}', '${decoded.uid}')`);
-            if (result.affectedRows > 0) {
-                res.send({ message: '项目添加成功' })
-                common.addLog(decoded.uid, `新增项目：${req.body.project_name}`, common.getCurrentTime());
-            } else {
-                res.send({ message: '项目添加失败' })
-            }
+            const sql_str = `INSERT INTO projects (project_name, start_date, end_date, description, status, manager_id) VALUES ('${req.body.project_name}', '${req.body.start_date}', '${req.body.end_date}', '${req.body.description}', '${req.body.status}', '${decoded.uid}')`;
+            await common.pool.query(sql_str).then(result => {
+                if (result.affectedRows > 0) {
+                    res.send({ message: '项目添加成功' })
+                    common.addLog(decoded.uid, `新增项目：${req.body.project_name}`, common.getCurrentTime());
+                } else {
+                    res.send({ message: '项目添加失败' })
+                }
+            }).catch(error => {
+                console.error(error);
+                common.errorCode(res, 500, 'Server error');
+            })
         } else {
             common.errorCode(res, 401, '该用户没有权限');
         }
@@ -85,18 +90,18 @@ router.post('/editForm', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
-            try {
-                const [rows]= await common.pool.query(`SELECT a.*, b.pname FROM projects a LEFT JOIN users b ON a.manager_id=b.ID WHERE a.project_id = ${req.body.project_id}`);
-                if (rows.length > 0) {
-                    res.send({ message: '查询成功', data: rows[0] })
-                    common.addLog(decoded.uid, `查询项目详情：${rows[0].project_name}`, common.getCurrentTime());
+            const sql_str = `SELECT a.*, b.pname FROM projects a LEFT JOIN users b ON a.manager_id=b.ID WHERE a.project_id = ${req.body.project_id}`;
+            await common.pool.query(sql_str).then(result => {
+                if (result[0].length > 0) {
+                    res.send({ message: '查询成功', data: result[0][0] })
+                    common.addLog(decoded.uid, `查询项目详情：${result[0][0].project_name}`, common.getCurrentTime());
                 } else {
                     res.send({ message: '查询失败' })
-                }    
-            } catch (error) {
-                console.log(error);
+                }
+            }).catch(error => {
+                console.error(error);
                 common.errorCode(res, 500, 'Server error');
-            }
+            })
         } else {
             common.errorCode(res, 401, '该用户没有权限');
         }
@@ -117,18 +122,18 @@ router.post('/update', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
-            try {
-                const [result] = await common.pool.query(`UPDATE projects SET project_name='${req.body.project_name}', start_date='${req.body.start_date}', end_date='${req.body.end_date}', description='${req.body.description}', status='${req.body.status}' WHERE project_id=${req.body.project_id}`);
+            const sql_str = `UPDATE projects SET project_name='${req.body.project_name}', start_date='${req.body.start_date}', end_date='${req.body.end_date}', description='${req.body.description}', status='${req.body.status}' WHERE project_id=${req.body.project_id}`;
+            await common.pool.query(sql_str).then(result => {
                 if (result.affectedRows > 0) {
                     res.send({ message: '项目更新成功' })
                     common.addLog(decoded.uid, `更新项目：${req.body.project_name}`, common.getCurrentTime());
                 } else {
                     res.send({ message: '项目更新失败' })
-                }
-            } catch (error) {
-                console.log(error);
+               }
+            }).catch(error => {
+                console.error(error);
                 common.errorCode(res, 500, 'Server error');
-            }
+            })
         }
     } else {
         common.errorCode(res, 401, 'token不存在');
@@ -147,18 +152,18 @@ router.post('/delete', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
-            try {
-                const [result] = await common.pool.query(`DELETE FROM projects WHERE project_id=${req.body.project_id}`);
+            const sql_str = `DELETE FROM projects WHERE project_id=${req.body.project_id}`;
+            await common.pool.query(sql_str).then(result => {
                 if (result.affectedRows > 0) {
                     res.send({ message: '项目删除成功' })
                     common.addLog(decoded.uid, `删除项目：${req.body.project_name}`,common.getCurrentTime());
                 } else {
                     res.send({ message: '项目不存在' })
-                }
-            } catch (error) {
-                console.log(error);
+               }
+            }).catch(error => {
+                console.error(error);
                 common.errorCode(res, 500, 'Server error');
-            }
+            })
         }
     } else {
         common.errorCode(res, 401, 'token不存在');
@@ -201,6 +206,9 @@ router.post('/details', async (req, res) => {
                 } else {
                     common.errorCode(res, 404, '该项目未添加任务');
                 }
+            }).catch(error => {
+                console.error(error);
+                common.errorCode(res, 500, 'Server error');
             })
         } else {
             common.errorCode(res, 401, '该用户没有权限');
@@ -228,6 +236,9 @@ router.post('/get_task_com', async (req, res) => {
                 } else {
                     common.errorCode(res, 404, '该项目未添加任务');
                 }
+            }).catch(error => {
+                console.error(error);
+                common.errorCode(res, 500, 'Server error');
             })
         } else {
             common.errorCode(res, 401, '该用户没有权限');

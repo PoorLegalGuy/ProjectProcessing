@@ -282,17 +282,50 @@ const projectAdd = () => {
         const c_title = '项目进度管理系统--项目管理';
         document.querySelector('#nav_title').innerHTML = c_title;
         document.title = c_title;
-        // 监听取消按钮点击事件
-        // document.querySelector('#cancel_add_btn').addEventListener('click', () => {
-        //     window.location.href = '#project_manage';
-        // });
         // 监听新建项目表单提交事件
         document.querySelector('#add_project_form').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             console.log(data);
-            fetch('/api/projects/add', {
+            // 判断项目名称长度
+            if (data.project_name.length > 20) {
+                alert('项目名称长度不能超过20个字符');
+                return;
+            } else {
+                fetch('/api/projects/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': window.sessionStorage.getItem('u_token')
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.message == '项目添加成功') {
+                        alert(data.message);
+                        document.querySelector('#cancel_add_btn').click();
+                        projectManage();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+            }
+        });
+    });
+}
+
+// 项目更新function
+const projectUpdate = (data) => {
+    func.chk_token(window.sessionStorage.getItem('u_token'), () => {
+        // 判断项目名称长度
+        if (data.project_name.length > 20) {
+            alert('项目名称长度不能超过20个字符');
+            return;
+        } else {
+            fetch('/api/projects/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -303,41 +336,16 @@ const projectAdd = () => {
             .then(response => response.json())
             .then(data => {
                 console.log(data);
-                if (data.message == '项目添加成功') {
+                if (data.message == '项目更新成功') {
                     alert(data.message);
-                    document.querySelector('#cancel_add_btn').click();
+                    // window.location.href = '#project_manage';
+                    document.querySelector('#cancel_edit_btn').click();
                     projectManage();
                 } else {
                     alert(data.message);
                 }
             })
-        });
-    });
-}
-
-// 项目更新function
-const projectUpdate = (data) => {
-    func.chk_token(window.sessionStorage.getItem('u_token'), () => {
-        fetch('/api/projects/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.getItem('u_token')
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            if (data.message == '项目更新成功') {
-                alert(data.message);
-                // window.location.href = '#project_manage';
-                document.querySelector('#cancel_edit_btn').click();
-                projectManage();
-            } else {
-                alert(data.message);
-            }
-        })
+        }
     });
 }
 // 编辑项目
