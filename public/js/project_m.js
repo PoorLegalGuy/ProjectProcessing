@@ -93,7 +93,7 @@ const createProjectDetailHTML = () => {
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">项目情况描述：</label>
-                <textarea class="form-control" id="description" name="description" rows="8" placeholder="请输入项目描述"></textarea>
+                <textarea class="form-control" id="description" name="description" rows="8" placeholder="请输入项目描述" required></textarea>
             </div>
             <div class="mb-3">
                 <label for="status" class="form-label">项目状态：</label>
@@ -138,7 +138,7 @@ const editProjectDetailHTML = (project) => {
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">项目描述：</label>
-                <textarea class="form-control" id="description" name="description" rows="8" placeholder="请输入项目描述">${project.description}</textarea>
+                <textarea class="form-control" id="description" name="description" rows="8" placeholder="请输入项目描述" required>${project.description}</textarea>
                 <script>
                     document.getElementById('description').value = "${project.description}";
                 </script>
@@ -371,11 +371,6 @@ const projectEdit = (project_id) => {
                 // document.querySelector('#content').innerHTML = editProjectDetailHTML(project); // 渲染项目详情
                 document.querySelector('#exampleModalLabel').innerHTML = '编辑项目';
                 document.querySelector('#exampleModal .modal-body').innerHTML = editProjectDetailHTML(project);
-                // 监听取消按钮点击事件
-                // document.querySelector('#cancel_edit_btn').addEventListener('click', () => {
-                //     // window.location.href = '#project_manage';
-                //     document.querySelector('#cancel_edit_btn').click();
-                // });
                 // 监听表单提交事件
                 document.querySelector('#edit_project_form').addEventListener('submit', (e) => {
                     e.preventDefault();

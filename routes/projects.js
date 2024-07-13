@@ -59,17 +59,21 @@ router.post('/add', async (req, res) => {
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
             const sql_str = `INSERT INTO projects (project_name, start_date, end_date, description, status, manager_id) VALUES ('${req.body.project_name}', '${req.body.start_date}', '${req.body.end_date}', '${req.body.description}', '${req.body.status}', '${decoded.uid}')`;
-            await common.pool.query(sql_str).then(result => {
-                if (result.affectedRows > 0) {
-                    res.send({ message: '项目添加成功' })
-                    common.addLog(decoded.uid, `新增项目：${req.body.project_name}`, common.getCurrentTime());
-                } else {
-                    res.send({ message: '项目添加失败' })
-                }
-            }).catch(error => {
-                console.error(error);
-                common.errorCode(res, 500, 'Server error');
-            })
+            if (req.body.start_date < req.body.end_date) {
+                await common.pool.query(sql_str).then(result => {
+                    if (result[0].affectedRows > 0) {
+                        res.send({ message: '项目添加成功' })
+                        common.addLog(decoded.uid, `新增项目：${req.body.project_name}`, common.getCurrentTime());
+                    } else {
+                        res.send({ message: '项目添加失败' })
+                    }
+                }).catch(error => {
+                    console.error(error);
+                    common.errorCode(res, 500, 'Server error');
+                })
+            } else {
+                res.send({ message: '开始日期不能大于结束日期' })
+            }
         } else {
             common.errorCode(res, 401, '该用户没有权限');
         }
@@ -123,17 +127,21 @@ router.post('/update', async (req, res) => {
             return;
         } else if (common.checkRole(decoded.roleid, [1002])) {
             const sql_str = `UPDATE projects SET project_name='${req.body.project_name}', start_date='${req.body.start_date}', end_date='${req.body.end_date}', description='${req.body.description}', status='${req.body.status}' WHERE project_id=${req.body.project_id}`;
-            await common.pool.query(sql_str).then(result => {
-                if (result.affectedRows > 0) {
-                    res.send({ message: '项目更新成功' })
-                    common.addLog(decoded.uid, `更新项目：${req.body.project_name}`, common.getCurrentTime());
-                } else {
-                    res.send({ message: '项目更新失败' })
-               }
-            }).catch(error => {
-                console.error(error);
-                common.errorCode(res, 500, 'Server error');
-            })
+            if (req.body.start_date < req.body.end_date) {
+                await common.pool.query(sql_str).then(result => {
+                    if (result[0].affectedRows > 0) {
+                        res.send({ message: '项目更新成功' })
+                        common.addLog(decoded.uid, `更新项目：${req.body.project_name}`, common.getCurrentTime());
+                    } else {
+                        res.send({ message: '项目更新失败' })
+                }
+                }).catch(error => {
+                    console.error(error);
+                    common.errorCode(res, 500, 'Server error');
+                })
+            } else {
+                res.send({ message: '开始日期不能大于结束日期' })
+            }
         }
     } else {
         common.errorCode(res, 401, 'token不存在');

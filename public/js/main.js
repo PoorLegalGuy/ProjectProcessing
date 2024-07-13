@@ -106,11 +106,11 @@ const loadContent = (hash) => {
             break;
 
         // 用户密码重置
-        case '#user_resetPassword':
-            active_nav('#user_resetPassword');
-            initTittle('项目进度管理系统--密码重置');
-            user_m.userPasswordReset();
-            break;
+        // case '#user_resetPassword':
+        //     active_nav('#user_resetPassword');
+        //     // initTittle('项目进度管理系统--密码重置');
+        //     user_m.userPasswordReset();
+        //     break;
 
         // 退出登录
         case '#logout':
@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 监听导航栏点击事件
     document.querySelector('#navbarNav').addEventListener('click', (e) => {
-        // event.preventDefault();
         if (document.querySelector('#navbarNav a.active')) {
             document.querySelector('#navbarNav a.active').classList.remove('active');
         }
@@ -151,6 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(e.target);
     });
 
+    // 监听密码重置按钮
+    document.querySelector('#user_resetPassword').addEventListener('click', (e) => {
+        e.preventDefault();
+        user_m.userPasswordReset();
+    });
 });
 
 export default {chk_token, utcToCst, formatDateTime}

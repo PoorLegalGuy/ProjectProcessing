@@ -9,11 +9,11 @@ const createLogsHtml = (logs) => {
             <div class="row justify-content-center">
                 <div class="col-5 mb-3">
                     <label for="log_date">开始时间：</label>
-                    <input type="datetime-local" class="form-control" id="log_start_date" name="log_start_date">
+                    <input type="datetime-local" class="form-control" id="log_start_date" name="log_start_date" required>
                 </div>
                 <div class="col-5 mb-3">
                     <label for="log_end_date">结束时间：</label>
-                    <input type="datetime-local" class="form-control" id="log_end_date" name="log_end_date">
+                    <input type="datetime-local" class="form-control" id="log_end_date" name="log_end_date" required>
                 </div>
             </div>
             <div class="mb-3">
@@ -53,9 +53,6 @@ const createLogsResHtml = (logs) => {
 // 获取日志列表
 const getLogsList = () => {
     func.chk_token(window.sessionStorage.getItem('u_token'), () => {
-        // const c_title = '项目进度管理系统--系统日志';
-        // document.querySelector('#nav_title').innerHTML = c_title;
-        // document.title = c_title;
         // 加载日志查询Html
         document.querySelector('#content').innerHTML = createLogsHtml();
         // 监听日志查询表单提交
@@ -63,10 +60,7 @@ const getLogsList = () => {
             e.preventDefault();
             let start_time = document.querySelector('#log_start_date').value;
             let end_time = document.querySelector('#log_end_date').value;
-            if (!start_time || !end_time) {
-                alert('请选择查询时间');
-                return;
-            } else if (start_time > end_time) {
+            if (start_time > end_time) {
                 alert('开始时间不能大于结束时间');
                 return;
             } else if (start_time == end_time) {

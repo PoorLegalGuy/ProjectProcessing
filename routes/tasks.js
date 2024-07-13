@@ -147,55 +147,55 @@ router.post('/add_task', async (req, res) => {
             } else if (req.body.com_percent < 0) {
                 req.body.com_percent = 0;
             }
-            let insertId = '';
-            const sql_str = `INSERT INTO tasks (task_name, description, assigned_to, project_id, start_date, end_date, status, com_percent) VALUES ('${req.body.task_name}', '${req.body.description}', ${req.body.assigned_to}, ${req.body.project_id}, '${req.body.start_date}', '${req.body.end_date}', '${req.body.status}', '${req.body.com_percent}')`;
-            await common.pool.query(sql_str).then(result => {
-                // console.log(result[0]);
-                if (result[0].affectedRows === 1) {
-                    insertId = result[0].insertId;
-                    // res.send({ code: 200, message: '添加任务成功' });
-                    // common.addLog(decoded.uid, `添加任务：${req.body.task_name}`, common.getCurrentTime()); // 添加日志
-                    return;
-                } else {
-                    // common.errorCode(res, 500, '添加任务失败');
-                    return;
-                }
-            }).catch(err => {
-                console.error(err);
-            });
-            if (insertId !== '') {
-                const pre_taskid_list = req.body.pre_taskid_list;
-                console.log(pre_taskid_list);
-                if (pre_taskid_list.length > 0) {
-                    let sql_status = 1;
-                    pre_taskid_list.forEach(async item => {
-                        const sql_str2 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${insertId}, ${item})`;
-                        await common.pool.query(sql_str2).then(result => {
-                            console.log(result[0]);
-                            if (result[0].affectedRows === 1) {
-                                // res.send({ code: 200, message: '添加任务成功' });
-                                return;
-                            } else {
-                                // common.errorCode(res, 500, '添加前置任务失败');
-                                sql_status = 0;
-                                return;
-                            }
-                        }).catch(err => {
-                            console.error(err);
-                        });
-                    });
-                    if (sql_status === 1) {
-                        res.send({ code: 200, message: '添加任务成功' });
-                        common.addLog(decoded.uid, `添加任务：${req.body.task_name}`, common.getCurrentTime()); // 添加日志
+            if (req.body.start_date > req.body.end_date) {
+                common.errorCode(res, 400, '开始日期不能大于结束日期');
+                return;
+            } else {
+                let insertId = '';
+                const sql_str = `INSERT INTO tasks (task_name, description, assigned_to, project_id, start_date, end_date, status, com_percent) VALUES ('${req.body.task_name}', '${req.body.description}', ${req.body.assigned_to}, ${req.body.project_id}, '${req.body.start_date}', '${req.body.end_date}', '${req.body.status}', '${req.body.com_percent}')`;
+                await common.pool.query(sql_str).then(result => {
+                    // console.log(result[0]);
+                    if (result[0].affectedRows === 1) {
+                        insertId = result[0].insertId;
+                        return;
                     } else {
                         return;
                     }
+                }).catch(err => {
+                    console.error(err);
+                });
+                if (insertId !== '') {
+                    const pre_taskid_list = req.body.pre_taskid_list;
+                    console.log(pre_taskid_list);
+                    if (pre_taskid_list.length > 0) {
+                        let sql_status = 1;
+                        pre_taskid_list.forEach(async item => {
+                            const sql_str2 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${insertId}, ${item})`;
+                            await common.pool.query(sql_str2).then(result => {
+                                console.log(result[0]);
+                                if (result[0].affectedRows === 1) {
+                                    return;
+                                } else {
+                                    sql_status = 0;
+                                    return;
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                            });
+                        });
+                        if (sql_status === 1) {
+                            res.send({ code: 200, message: '添加任务成功' });
+                            common.addLog(decoded.uid, `添加任务：${req.body.task_name}`, common.getCurrentTime()); // 添加日志
+                        } else {
+                            return;
+                        }
+                    } else {
+                        res.send({ code: 200, message: '添加任务成功' });
+                        common.addLog(decoded.uid, `添加任务：${req.body.task_name}`, common.getCurrentTime());
+                    }
                 } else {
-                    res.send({ code: 200, message: '添加任务成功' });
-                    common.addLog(decoded.uid, `添加任务：${req.body.task_name}`, common.getCurrentTime());
+                    common.errorCode(res, 500, '添加任务失败');
                 }
-            } else {
-                common.errorCode(res, 500, '添加任务失败');
             }
         } else {
             common.errorCode(res, 401, '该用户没有权限');
@@ -271,69 +271,74 @@ router.post('/update_task', async (req, res) => {
                 req.body.com_percent = 0;
             }
             const sql_str = `UPDATE tasks SET task_name = '${req.body.task_name}', description = '${req.body.description}', assigned_to = ${req.body.assigned_to}, project_id = ${req.body.project_id}, start_date = '${req.body.start_date}', end_date = '${req.body.end_date}', status = '${req.body.status}', com_percent = '${req.body.com_percent}' WHERE task_id = ${req.body.task_id}`;
-            await common.pool.query(sql_str).then(async (result) => {
-                // console.log(result[0].affectedRows);
-                if (result[0].affectedRows === 1) {
-                    console.log('任务内容更新成功');
-                    // 比对前置任务
-                    let sql_status = 1;
-                    const sql_str1 = `SELECT pre_task_id FROM pre_task WHERE task_id = ${req.body.task_id}`;
-                    await common.pool.query(sql_str1).then(async (result) => {
-                        if (result[0].length === 0) {
-                            let sql_status1 = 1;
-                            // 没有前置任务,插入新增前置任务数据
-                            pre_taskid_list.forEach(item => {
-                                const sql_str2 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${req.body.task_id}, ${item})`;
-                                common.pool.query(sql_str2).then(result => {
-                                    // console.log(result[0]);
-                                    if (result[0].affectedRows === 1) {
-                                        return;
-                                    } else {
-                                        sql_status = 0;
-                                        return;
-                                    }
-                                }).catch(err => {
-                                    console.error(err);
-                                });
-                            })
-                        } else {
-                            // 存在前置任务，则先删除左右前置任务数据，再插入新增前置任务数据
-                            const sql_str2 = `DELETE FROM pre_task WHERE task_id = ${req.body.task_id}`;
-                            await common.pool.query(sql_str2).then(async (result) => {
-                                if (result[0].affectedRows > 0) {
-                                    pre_taskid_list.forEach(item => {
-                                        const sql_str3 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${req.body.task_id}, ${item})`;
-                                        common.pool.query(sql_str3).then(result => {
-                                            console.log(result[0]);
-                                            if (result[0].affectedRows === 1) {
-                                                return;
-                                            } else {
-                                                sql_status = 0;
-                                                return;
-                                            }
-                                        }).catch(err => {
-                                            console.error(err);
-                                        })
+            if (req.body.start_date > req.body.end_date) {
+                common.errorCode(res, 400, '开始时间不能大于结束时间');
+                return;
+            } else {
+                await common.pool.query(sql_str).then(async (result) => {
+                    // console.log(result[0].affectedRows);
+                    if (result[0].affectedRows === 1) {
+                        console.log('任务内容更新成功');
+                        // 比对前置任务
+                        let sql_status = 1;
+                        const sql_str1 = `SELECT pre_task_id FROM pre_task WHERE task_id = ${req.body.task_id}`;
+                        await common.pool.query(sql_str1).then(async (result) => {
+                            if (result[0].length === 0) {
+                                let sql_status1 = 1;
+                                // 没有前置任务,插入新增前置任务数据
+                                pre_taskid_list.forEach(item => {
+                                    const sql_str2 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${req.body.task_id}, ${item})`;
+                                    common.pool.query(sql_str2).then(result => {
+                                        // console.log(result[0]);
+                                        if (result[0].affectedRows === 1) {
+                                            return;
+                                        } else {
+                                            sql_status = 0;
+                                            return;
+                                        }
+                                    }).catch(err => {
+                                        console.error(err);
                                     });
-                                }
-                            });
-                        }
-                        if (sql_status === 1) {
-                            res.send({ code: 200, message: '更新任务成功' });
-                            common.addLog(decoded.uid, `更新任务：${req.body.task_name}`, common.getCurrentTime()); // 添加日志
+                                })
+                            } else {
+                                // 存在前置任务，则先删除左右前置任务数据，再插入新增前置任务数据
+                                const sql_str2 = `DELETE FROM pre_task WHERE task_id = ${req.body.task_id}`;
+                                await common.pool.query(sql_str2).then(async (result) => {
+                                    if (result[0].affectedRows > 0) {
+                                        pre_taskid_list.forEach(item => {
+                                            const sql_str3 = `INSERT INTO pre_task (task_id, pre_task_id) VALUES (${req.body.task_id}, ${item})`;
+                                            common.pool.query(sql_str3).then(result => {
+                                                console.log(result[0]);
+                                                if (result[0].affectedRows === 1) {
+                                                    return;
+                                                } else {
+                                                    sql_status = 0;
+                                                    return;
+                                                }
+                                            }).catch(err => {
+                                                console.error(err);
+                                            })
+                                        });
+                                    }
+                                });
+                            }
+                            if (sql_status === 1) {
+                                res.send({ code: 200, message: '更新任务成功' });
+                                common.addLog(decoded.uid, `更新任务：${req.body.task_name}`, common.getCurrentTime()); // 添加日志
+                                return;
+                            } else {
+                                common.errorCode(res, 500, '更新任务失败');
                             return;
-                        } else {
-                            common.errorCode(res, 500, '更新任务失败');
-                           return;
-                        }
-                    });
-                } else {
-                    common.errorCode(res, 500, '更新任务失败');
-                    return;
-                }
-            }).catch(err => {
-                console.error(err);
-            });
+                            }
+                        });
+                    } else {
+                        common.errorCode(res, 500, '更新任务失败');
+                        return;
+                    }
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
         } else {
             common.errorCode(res, 401, '该用户没有权限');
         }

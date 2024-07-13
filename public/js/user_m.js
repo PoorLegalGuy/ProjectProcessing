@@ -161,10 +161,10 @@ const resetPasswordHtml = (user) => {
 }
 
 // 加载用户重置密码页面的Html
-const userResetPasswordHtml = (user) => {
+const userResetPasswordHtml = () => {
     const html = `
     <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-3">
+        <div class="col-6">
             <form id="user_reset_password_form">
                 <div class="mb-3">
                     <label for="original_password" class="form-label">原密码</label>
@@ -180,11 +180,11 @@ const userResetPasswordHtml = (user) => {
                 </div>
                 <div class="mb-3 d-flex justify-content-center align-items-center">
                     <button type="submit" class="btn btn-primary m-3">重置密码</button>
-                    <button type="button" class="btn btn-secondary m-3" id="cancel_user_reset_password">取消</button>
+                    <button type="button" class="btn btn-secondary m-3" id="cancel_user_reset_password" data-bs-dismiss="modal" aria-label="Close">取消</button>
                 </div>
             </form>
         </div>
-    </div>
+
     `;
     return html;
 }
@@ -212,18 +212,12 @@ const userManage = () => {
         .then(data => {
             console.log(data);
             if (data.message == '用户信息获取成功') {
-                // 加载页面内容标题
-                // const c_title = '项目进度管理系统--用户管理';
-                // document.querySelector('#nav_title').innerHTML = c_title;
-                // document.title = c_title;
                 // 创建用户列表数组
                 const [ users ] = [ data.userinfo ]; 
                 // 加载用户管理页面
                 document.querySelector('#content').innerHTML = createUserListHtml(users); //加载用户列表
                 // 监听新增用户按钮
                 document.querySelector('#add_user_btn').addEventListener('click', () => {
-                    // addUser_html();
-                    // window.location.hash = '#user_manage/register';
                     userRegister();
                 });
                 // 监听所有用户编辑按钮
@@ -241,7 +235,6 @@ const userManage = () => {
                                 status: tr.children[4].innerHTML
                             }
                             // console.log(user);
-                            // window.sessionStorage.setItem('user_cache', JSON.stringify(user));
                             userEdit(user);
                         }
                     });
@@ -249,7 +242,6 @@ const userManage = () => {
             } else {
                 // alert(data.message);
                 document.querySelector('#content').innerHTML = `<div class="alert alert-danger" role="alert">${data.message}</div>`;
-                // window.location.hash = '#/';
             }
         })
         .catch(error => {
@@ -260,9 +252,7 @@ const userManage = () => {
 
 const userRegister = () => {
     // 加载注册用户页面
-    func.chk_token(window.sessionStorage.getItem('u_token'), () => {
-        // document.querySelector('#content').innerHTML = createAddUserHtml();
-        document.querySelector('#exampleModalLabel').innerHTML = '新增用户';
+    func.chk_token(window.sessionStorage.getItem('u_token'), () => {        document.querySelector('#exampleModalLabel').innerHTML = '新增用户';
         document.querySelector('#exampleModal .modal-body').innerHTML = createAddUserHtml();
         // 监听注册用户表单
         document.querySelector('#add_user_form').addEventListener('submit', (e) => {
@@ -289,20 +279,12 @@ const userRegister = () => {
                     console.log(data);
                     alert(data.message);
                     if (data.message == '注册成功') {
-                        // location.reload();
-                        // window.location.href = '#user_manage';
-                        // console.log(data.message);
                         document.querySelector('#cancel_add_user').click();
                         userManage();
                     }
                 })
             }
         });
-        // 监听取消新增用户按钮
-        // document.querySelector('#cancel_add_user').addEventListener('click', () => {
-        //     // location.reload(); // 刷新页面返回用户管理页面
-        //     window.location.href = '#user_manage';
-        // });
     });
 }
 
@@ -331,22 +313,13 @@ const userEdit = (user) => {
                 console.log(data);
                 alert(data.message);
                 if (data.message == '用户信息更新成功') {
-                    // location.reload();
-                    // window.location.hash = '#user_manage';
-                    // window.sessionStorage.removeItem('user_cache'); // 清理用户信息缓存
                     document.querySelector('#cancel_edit_user').click();
+                    userManage();
                 }
             })
         })
-        // 监听取消编辑用户按钮
-        // document.querySelector('#cancel_edit_user').addEventListener('click', () => {
-        //     // location.reload(); // 刷新页面返回用户管理页面
-        //     window.location.hash = '#user_manage';
-        //     window.sessionStorage.removeItem('user_cache'); // 清理用户信息缓存
-        // });
         // 监听重置密码按钮
         document.querySelector('#reset_password').addEventListener('click', () => {
-            // window.location.hash = '#user_manage/edit/password_reset';
             adminPasswordReset();
         });
         // 监听删除用户按钮
@@ -379,9 +352,6 @@ const userEdit = (user) => {
                         console.log(data);
                         alert(data.message);
                         if (data.message == '用户删除成功') {
-                            // location.reload(); // 刷新页面返回用户管理页面
-                            // window.location.hash = '#user_manage';
-                            // window.sessionStorage.removeItem('user_cache');
                             document.querySelector('#cancel_edit_user').click();
                             userManage();
                         }
@@ -421,23 +391,17 @@ const adminPasswordReset = () => {
                 console.log(data);
                 alert(data.message);
                 if (data.message == '用户密码重置成功') {
-                    // location.reload(); // 刷新页面返回用户管理页面
-                    // window.location.hash = '#user_manage/edit'; // 跳转到编辑用户页面
                     document.querySelector('#cancel_reset_password').click();
                 }
             })
         }
     });
-    // 监听取消重置密码按钮
-    // document.querySelector('#cancel_reset_password').addEventListener('click', () => {
-    //     window.location.hash = '#user_manage/edit'; // 跳转到编辑用户页面
-    // });
 }
 
 const userPasswordReset = () => {
     func.chk_token(window.sessionStorage.getItem('u_token'), () => {
-        const user = { username: window.sessionStorage.getItem('username') };
-        document.querySelector('#content').innerHTML = userResetPasswordHtml(user);
+        document.querySelector('#exampleModalLabel').innerHTML = '重置密码';
+        document.querySelector('#exampleModal .modal-body').innerHTML = userResetPasswordHtml();
         // 监听重置密码表单提交
         document.querySelector('#user_reset_password_form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -461,23 +425,9 @@ const userPasswordReset = () => {
                     console.log(data);
                     alert(data.message);
                     if (data.message == '用户密码重置成功') {
-                        if (window.history.length > 1) {
-                            window.history.go(-1);
-                        } else {
-                            window.location.hash = '#/';
-                        }
-                    } else {
-                        alert(data.message);
+                        document.querySelector('#cancel_user_reset_password').click();
                     }
                 })
-            }
-        });
-        // 监听取消按钮
-        document.querySelector('#cancel_user_reset_password').addEventListener('click', function () {
-            if (window.history.length > 1) {
-                window.history.go(-1);
-            } else {
-                window.location.hash = '#/';
             }
         });
     });

@@ -104,7 +104,7 @@ const addTaskFormHTML = (project_name, project_id, user, taskList) => {
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">任务描述：</label>
-                <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
             </div>
             <div class="row">
                 <div class="col mb-3">
@@ -195,7 +195,7 @@ const editTaskFormHTML = (project_name, project_id, task, user) => {
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">任务描述</label>
-                <textarea class="form-control" id="description" name="description" rows="5">${task.description}</textarea>
+                <textarea class="form-control" id="description" name="description" rows="5" required>${task.description}</textarea>
             </div>
             <div class="row">
                 <div class="col mb-3">
@@ -406,100 +406,94 @@ const taskAdd = (project_name, project_id) => {
     func.chk_token(window.sessionStorage.getItem('u_token'), async () => {
         // 获取可分配的负责人名单
         let user_list = [];
-        // 判断任务名称长度
-        // if (document.querySelector('#task_name').value.length > 15) {
-        //     alert('任务名称长度不能超过15个字符');
-        //     return;
-        // } else {
-            await fetch('/api/tasks/user_list', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': window.sessionStorage.getItem('u_token')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                if (data.code == 200) {
-                    user_list = data.result;
-                } else {
-                    // alert(data.message);
-                    return;
-                }
-            })
-            // 获取任务列表
-            let task_list = [];
-            await fetch('/api/tasks/task_list', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': window.sessionStorage.getItem('u_token')
-                },
-                body: JSON.stringify({
-                    project_id: project_id
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                document.querySelector('#exampleModalLabel2').innerHTML = project_name + ' - 新建任务';
-                if (data.code == 200) {
-                    task_list = data.result;
-                    // console.log(task_list);
-                } else {
-                    // alert(data.message);
-                    return;
-                }
-            })
-            if (user_list.length == 0) {
-                // alert('无可分配负责人，请先添加负责人');
-                document.querySelector('#exampleModal2 .modal-body').innerHTML = `<div class="alert alert-danger" role="alert">无可分配负责人，请先添加负责人</div>`;
+        await fetch('/api/tasks/user_list', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': window.sessionStorage.getItem('u_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.code == 200) {
+                user_list = data.result;
             } else {
-                document.querySelector('#exampleModal2 .modal-body').innerHTML = addTaskFormHTML(project_name, project_id, user_list, task_list);
-                // 监听表单提交
-                document.querySelector('#add_task_form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    // 提交任务信息
-                    const formData = new FormData(document.querySelector('#add_task_form'));
-                    let data = Object.fromEntries(formData.entries());
-                    data.pre_taskid_list = [];
-                    // 将所有勾选的前置任务的input value添加到data.pre_taskid_list中
-                    document.querySelectorAll('.pre_task_checkbox').forEach(checkbox => {
-                        if (checkbox.checked) {
-                            data.pre_taskid_list.push(checkbox.value);
-                        }
-                    })
-                    console.log(data);
-                    // 判断任务名称长度
-                    if (data.task_name.length > 15) {
-                        alert('任务名称长度不能超过15个字符');
-                        return;
-                    } else {
-                        fetch('/api/tasks/add_task', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': window.sessionStorage.getItem('u_token')
-                            },
-                            body: JSON.stringify(data)
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log(data);
-                            if (data.code == 200) {
-                                alert('任务添加成功');
-                                document.querySelector('#cancel_add_btn').click();
-                                taskManagePage(project_name, project_id);
-                            } else {
-                                alert(data.message);
-                                return;
-                            }
-                        })
+                // alert(data.message);
+                return;
+            }
+        })
+        // 获取任务列表
+        let task_list = [];
+        await fetch('/api/tasks/task_list', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': window.sessionStorage.getItem('u_token')
+            },
+            body: JSON.stringify({
+                project_id: project_id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            document.querySelector('#exampleModalLabel2').innerHTML = project_name + ' - 新建任务';
+            if (data.code == 200) {
+                task_list = data.result;
+                // console.log(task_list);
+            } else {
+                // alert(data.message);
+                return;
+            }
+        })
+        if (user_list.length == 0) {
+            // alert('无可分配负责人，请先添加负责人');
+            document.querySelector('#exampleModal2 .modal-body').innerHTML = `<div class="alert alert-danger" role="alert">无可分配负责人，请先添加负责人</div>`;
+        } else {
+            document.querySelector('#exampleModal2 .modal-body').innerHTML = addTaskFormHTML(project_name, project_id, user_list, task_list);
+            // 监听表单提交
+            document.querySelector('#add_task_form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // 提交任务信息
+                const formData = new FormData(document.querySelector('#add_task_form'));
+                let data = Object.fromEntries(formData.entries());
+                data.pre_taskid_list = [];
+                // 将所有勾选的前置任务的input value添加到data.pre_taskid_list中
+                document.querySelectorAll('.pre_task_checkbox').forEach(checkbox => {
+                    if (checkbox.checked) {
+                        data.pre_taskid_list.push(checkbox.value);
                     }
                 })
-            }
-        // }
+                console.log(data);
+                // 判断任务名称长度
+                if (data.task_name.length > 20) {
+                    alert('任务名称长度不能超过20个字符');
+                    return;
+                } else {
+                    fetch('/api/tasks/add_task', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': window.sessionStorage.getItem('u_token')
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        if (data.code == 200) {
+                            alert('任务添加成功');
+                            document.querySelector('#cancel_add_btn').click();
+                            taskManagePage(project_name, project_id);
+                        } else {
+                            alert(data.message);
+                            return;
+                        }
+                    })
+                }
+            })
+        }
     })
 }
 
@@ -553,8 +547,8 @@ const taskEdit = (project_name, project_id, task_name, task_id) => {
                         })
                         console.log(data);
                         // 判断任务名称长度
-                        if (data.task_name.length > 15) {
-                            alert('任务名称长度不能超过15个字符');
+                        if (data.task_name.length > 20) {
+                            alert('任务名称长度不能超过20个字符');
                             return;
                         } else {
                             fetch('/api/tasks/update_task', {
