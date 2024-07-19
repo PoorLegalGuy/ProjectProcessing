@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const common = require('../common.js');
+const e = require('express');
 
 // 用户登录
 router.post('/login', async (req, res) => {
@@ -140,20 +141,24 @@ router.post('/update', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1001])) {
-            try {
-                const [results] = await common.pool.query('UPDATE users SET pname = ?, email = ?, roleid = ?, update_time = ?, is_disabled = ? WHERE username = ?', [req.body.pname, req.body.uemail, common.roleToRoleid(req.body.urole), common.getCurrentTime(), req.body.is_disabled, req.body.username]);
-                if (results.affectedRows === 1) {
+            const sql_str = `UPDATE users SET pname = '${req.body.pname}', email = '${req.body.uemail}', roleid = ${common.roleToRoleid(req.body.urole)}, update_time = '${common.getCurrentTime()}', is_disabled = ${req.body.is_disabled} WHERE username = '${req.body.username}'`;
+            await common.pool.query(sql_str).then(result => {
+                if (result[0].affectedRows === 1) {
                     res.send({ message: '用户信息更新成功' });
                     // 日志记录用户信息更新事件
                     common.addLog(decoded.uid, `${req.body.username} 用户信息更新`, common.getCurrentTime());
                     console.log(`用户 ${req.body.username} 信息更新成功`);
-                } else {
-                    common.errorCode(res, 500, '用户信息更新失败');
                 }
-            } catch (err) {
+            }).catch(err => {
                 console.error(err);
-                common.errorCode(res, 500, 'Server error');
-            }
+                if (err.code === 'ER_DUP_ENTRY') {
+                    if  (err.message.includes('email')) {
+                        common.errorCode(res, 400, '邮箱已存在');
+                    }
+                } else {
+                    common.errorCode(res,500, 'Server error');
+                }
+            });
         } else {
             common.errorCode(res, 401, '该用户没有权限');
         }
