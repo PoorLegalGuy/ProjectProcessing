@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 const common = require('../common.js');
-const e = require('express');
 
 // 用户登录
 router.post('/login', async (req, res) => {
