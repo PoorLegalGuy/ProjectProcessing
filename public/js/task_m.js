@@ -309,13 +309,30 @@ const taskComListHTML = (task) => {
     return html;
 }
 
+// 进度汇报
 const taskComReportHTML = (taskcom_desc) => {
     let html = `
     <div class="col-md-12">
         <form id="taskcom_report_form">
             <div class="mb-3">
-                <label for="task_com_report" class="form-label">任务进度汇报：</label>
-                <textarea class="form-control" id="task_com_report" name="task_com_report" rows="10" required>${taskcom_desc}</textarea>
+                <h5 class="text-center">任务负责人：${taskcom_desc.pname}</h5>
+                <p>最近一次汇报时间：${taskcom_desc.taskreport_update_date ? func.utcToCst(taskcom_desc.taskreport_update_date, 2) : '无记录'}</p>
+            </div>
+            <div class="mb-3">
+                <label for="task_desc" class="form-label">任务描述：</label>
+                <textarea class="form-control" id="task_desc" name="task_desc" rows="10" disabled>${taskcom_desc.description ? taskcom_desc.description : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_completed" class="form-label">已完成事项：</label>
+                <textarea class="form-control" id="task_completed" name="task_completed" rows="10" required>${taskcom_desc.task_completed ? taskcom_desc.task_completed : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_uncompleted" class="form-label">未完成事项：</label>
+                <textarea class="form-control" id="task_uncompleted" name="task_uncompleted" rows="10" required>${taskcom_desc.task_uncompleted ? taskcom_desc.task_uncompleted : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_problems" class="form-label">待解决问题：</label>
+                <textarea class="form-control" id="task_problems" name="task_problems" rows="10" required>${taskcom_desc.task_problems ? taskcom_desc.task_problems : ''}</textarea>
             </div>
             <div class="mb-3 d-flex justify-content-center align-items-center">
                 <button type="submit" class="btn btn-primary m-3" id="save_taskcom_report">保存</button>
@@ -641,23 +658,24 @@ const taskComList = () => {
 
 const taskComReport = (task_name, task_id, taskcom_cache) => {
     func.chk_token(window.sessionStorage.getItem('u_token'), () => {      
-        let taskcom_desc = null;
+        let taskcom_desc,pname = null;
         console.log(taskcom_cache);
         for (let i = 0; i < taskcom_cache.length; i++) {
             // console.log(taskcom_cache[i]);
             if (taskcom_cache[i].task_id == task_id) {
-                taskcom_desc = taskcom_cache[i].description ? taskcom_cache[i].description : '';
+                taskcom_desc = taskcom_cache[i];
+                // 加载任务管理-进度汇报页面内容
+                console.log(taskcom_desc);
+                document.querySelector('#exampleModalLabel').innerHTML = task_name + ' - 进度汇报';
+                document.querySelector('#exampleModal .modal-body').innerHTML = taskComReportHTML(taskcom_desc);
                 break;
             }
         }
-        // console.log(taskcom_desc);
-        document.querySelector('#exampleModalLabel').innerHTML = task_name + ' - 进度汇报';
-        document.querySelector('#exampleModal .modal-body').innerHTML = taskComReportHTML(taskcom_desc);
 
         // 监听表单提交
         document.querySelector('#taskcom_report_form').addEventListener('submit', (e) => {
             e.preventDefault();
-            console.log(task_id, document.querySelector('#task_com_report').value)
+            console.log(task_id, taskcom_desc);
             fetch('/api/tasks/update_task_com', {
                 method: 'POST',
                 headers: {
@@ -666,7 +684,9 @@ const taskComReport = (task_name, task_id, taskcom_cache) => {
                 },
                 body: JSON.stringify({
                     task_id: task_id,
-                    description: document.querySelector('#task_com_report').value
+                    task_completed: document.querySelector('#task_completed').value,
+                    task_uncompleted: document.querySelector('#task_uncompleted').value,
+                    task_problems: document.querySelector('#task_problems').value
                 })
             })
             .then(response => response.json())

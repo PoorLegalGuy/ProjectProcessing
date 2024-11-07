@@ -190,7 +190,7 @@ router.post('/details', async (req, res) => {
             return;
         } else if (common.checkRole(decoded.roleid, [1002,1003])) {
             let arr = [];
-            const sql_str1 = `SELECT task_id, task_name, start_date, end_date, com_percent FROM tasks WHERE project_id=${req.body.project_id}`;
+            const sql_str1 = `SELECT task_id, task_name, start_date, end_date, com_percent FROM tasks WHERE project_id=${req.body.project_id} order by start_date`;
             await common.pool.query(sql_str1).then(async(result) => {
                 if (result[0].length > 0) {
                     arr = result[0];
@@ -237,7 +237,7 @@ router.post('/get_task_com', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
             return;
         } else if (common.checkRole(decoded.roleid, [1002,1003])) {
-            const sql_str = `SELECT d.project_name, a.task_id, a.task_name, a.start_date, a.end_date, a.status, b.task_id AS task_id_com, b.description, c.pname FROM tasks a LEFT JOIN task_completion b ON a.task_id=b.task_id LEFT JOIN users c ON a.assigned_to=c.ID LEFT JOIN projects d ON a.project_id=d.project_id where a.project_id=${req.body.project_id} ORDER BY a.task_id DESC`;
+            const sql_str = `SELECT d.project_name, a.task_id, a.task_name, a.start_date, a.end_date, a.status, a.description, b.task_id AS task_id_com, b.task_completed, b.task_uncompleted, b.task_problems, b.taskreport_update_date, c.pname FROM tasks a LEFT JOIN task_completion b ON a.task_id=b.task_id LEFT JOIN users c ON a.assigned_to=c.ID LEFT JOIN projects d ON a.project_id=d.project_id where a.project_id=${req.body.project_id} ORDER BY a.start_date`;
             await common.pool.query(sql_str).then(result => {
                 if (result[0].length > 0) {
                     res.send({ code: 200, data: result[0] })

@@ -423,7 +423,7 @@ router.get('/get_task_com', async (req, res) => {
         } else if (decoded === 'failed') {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
         } else if (common.checkRole(decoded.roleid, [1003])) {
-            const sql_str = `SELECT d.project_name, a.task_id, a.task_name, a.start_date, a.end_date, a.status, b.task_id AS task_id_com, b.description, c.pname FROM tasks a LEFT JOIN task_completion b ON a.task_id=b.task_id LEFT JOIN users c ON a.assigned_to=c.ID LEFT JOIN projects d ON a.project_id=d.project_id where a.assigned_to=${decoded.uid} ORDER BY a.task_id DESC`;
+            const sql_str = `SELECT d.project_name, a.task_id, a.task_name, a.start_date, a.end_date, a.status, a.description, b.task_id AS task_id_com, b.task_completed, b.task_uncompleted, b.task_problems, b.taskreport_update_date, c.pname FROM tasks a LEFT JOIN task_completion b ON a.task_id=b.task_id LEFT JOIN users c ON a.assigned_to=c.ID LEFT JOIN projects d ON a.project_id=d.project_id where a.assigned_to=${decoded.uid} ORDER BY a.task_id DESC`;
             await common.pool.query(sql_str).then(result => {
                 console.log(result[0]);
                 if (result[0].length === 0) {
@@ -459,8 +459,8 @@ router.post('/update_task_com', async (req, res) => {
             common.errorCode(res, 401, '登录信息错误，请重新登录');
         } else if (common.checkRole(decoded.roleid, [1003])) {
             console.log(req.body)
-            const sql_str1 = `UPDATE task_completion SET description = '${req.body.description}' WHERE task_id = ${req.body.task_id}`;
-            const sql_str2 = `INSERT INTO task_completion (task_id, description) VALUES (${req.body.task_id}, '${req.body.description}')`;
+            const sql_str1 = `UPDATE task_completion SET task_completed = '${req.body.task_completed}', task_uncompleted = '${req.body.task_uncompleted}', task_problems = '${req.body.task_problems}', taskreport_update_date = '${common.getCurrentTime()}' WHERE task_id = ${req.body.task_id}`,
+            sql_str2 = `INSERT INTO task_completion (task_id, task_completed, task_uncompleted, task_problems) VALUES (${req.body.task_id}, '${req.body.task_completed}', '${req.body.task_uncompleted}', '${req.body.task_problems}')`;
             await common.pool.query(`SELECT task_id FROM task_completion WHERE task_id=${req.body.task_id}`).then(async result => {
                 console.log(result[0]);
                 if (result[0].length === 0) {

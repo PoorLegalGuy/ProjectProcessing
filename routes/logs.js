@@ -16,7 +16,6 @@ router.post('/query', async (req, res) => {
         } else if (common.checkRole(decoded.roleid, [1001])) {
             try {
                 // console.log(req.body);
-                // console.log(common.pool.query(`SELECT a.*, b.pname FROM sys_log a LEFT JOIN users b ON a.userid = b.ID WHERE a.event_time BETWEEN '${req.body.log_start_time}' and '${req.body.log_end_time}' ORDER BY a.event_time DESC`));
                 const [rows] = await common.pool.query(`SELECT a.*, b.pname FROM sys_log a LEFT JOIN users b ON a.userid = b.ID WHERE a.event_time BETWEEN '${req.body.log_start_time}' and '${req.body.log_end_time}' ORDER BY a.event_time DESC`);
                 if (rows.length > 0) {
                     res.send({ message: '获取日志成功', data: rows });

@@ -166,11 +166,11 @@ const editProjectDetailHTML = (project) => {
 
 // 项目详情HTML
 const projectDetailsHTML = () => {
-    let html = `<div id="chart_div"></div><div id="task_div"></div>`;
+    let html = `<div id="chart_div"></div><div id="task_div"></div><div><div id="problems_div"></div></div>`;
     return html;
 }
 
-// 项目任务进度汇报情况
+// 项目任务情况
 const taskComHTML = (task) => {
     let html = `
     <table class="table table-striped">
@@ -201,6 +201,66 @@ const taskComHTML = (task) => {
     html += `
         </tbody>
     </table>
+    `;
+    return html;
+}
+
+// 任务待解决问题
+const taskProblemsHTML = (task) => {
+    let html = `
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">任务名称</th>
+                <th scope="col">任务负责人</th>
+                <th scope="col">待解决问题</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+    task.forEach(items => {
+        html += `
+            <tr>
+                <td>${items.task_name ? items.task_name : ''}</td>
+                <td>${items.pname ? items.pname :''}</td>
+                <td style="white-space: pre-wrap">${items.task_problems ? items.task_problems : ''}</td>
+            </tr>
+        `;
+    })
+    html += `
+        </tbody>
+    </table>
+    `;
+    return html;    
+}
+
+// 任务汇报详情
+const taskComReportHTML = (desc) => {
+    let html = `
+    <div class="col-md-12">
+        <form id="taskcom_report_form">
+            <div class="mb-3">
+                <h5 class="text-center">任务负责人：${desc.pname ? desc.pname : '未分配'}</h5>
+                <p>最近一次汇报时间：${desc.taskreport_update_date ? func.utcToCst(desc.taskreport_update_date, 2) : '无记录'}</p>
+            </div>
+            <div class="mb-3">
+                <label for="task_desc" class="form-label">任务描述：</label>
+                <textarea class="form-control" id="task_desc" name="task_desc" rows="10" disabled>${desc.description ? desc.description : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_completed" class="form-label">已完成事项：</label>
+                <textarea class="form-control" id="task_completed" name="task_completed" rows="10" disabled>${desc.task_completed ? desc.task_completed : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_uncompleted" class="form-label">未完成事项：</label>
+                <textarea class="form-control" id="task_uncompleted" name="task_uncompleted" rows="10" disabled>${desc.task_uncompleted ? desc.task_uncompleted : ''}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="task_problems" class="form-label">待解决问题：</label>
+                <textarea class="form-control" id="task_problems" name="task_problems" rows="10" disabled>${desc.task_problems ? desc.task_problems : ''}</textarea>
+            </div>
+        </form>
+    </div>
     `;
     return html;
 }
@@ -503,18 +563,32 @@ const projectDetails = (project_name, project_id) => {
                     var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
                     chart.draw(data, options);                            
                 }
+                // 当modal弹出时，重新绘制图表
                 document.querySelector('#exampleModal').addEventListener('shown.bs.modal', () => {
                     if (window.location.hash == '#project_manage' && document.querySelector('#chart_div')) {
                         drawChart();
                     }
                 })
+                // 监听窗口大小变化，重新绘制图表
                 window.addEventListener('resize', () => {
                     if (window.location.hash == '#project_manage' && document.querySelector('#chart_div')) {
                         drawChart();
                     }
                 })
             })
+            // 加载任务情况列表
+            // console.log(taskcom_desc);
             document.querySelector('#task_div').innerHTML = taskComHTML(taskcom_desc);
+            // 轮询器判断所有td的文本内容是否为“已超时”，整行字体颜色为红色
+            document.querySelectorAll('#task_div td').forEach(element => {
+                if (element.innerText == '已超时') {
+                    console.log(element);
+                    element.classList.add('text-danger');
+                }
+            });
+            // 加载“任务待解决问题”列表
+            document.querySelector('#problems_div').innerHTML = taskProblemsHTML(taskcom_desc);
+            
             // 点击空白处隐藏甘特图详情窗口
             document.querySelector('#chart_div').addEventListener('click', () => {
                 document.querySelector("#chart_div > div > div > svg > g:nth-child(10) > g").classList.add('d-none');
@@ -522,18 +596,18 @@ const projectDetails = (project_name, project_id) => {
             // 监听查看按钮点击事件
             document.querySelectorAll('.task_com_btn').forEach(element => {
                 element.addEventListener('click', () => {
-                    let title = element.parentNode.parentNode.children[0].innerText;
-                    let desc = '暂未填写进度情况';
-                    for (let i = 0; i < taskcom_desc.length; i++) {
-                        if (taskcom_desc[i].task_id == element.dataset.task_id) {
-                            if (taskcom_desc[i].description !== null) {
-                                desc = taskcom_desc[i].description;
-                            }
+                    // console.log(taskcom_desc);
+                    const task_name = element.parentNode.parentNode.children[0].innerText;
+                    let desc={};
+                    for(let i = 0; i < taskcom_desc.length; i++) {
+                        if(taskcom_desc[i].task_id == element.dataset.task_id) {
+                            desc = taskcom_desc[i];
+                            console.log(desc);
                             break;
                         }
                     }
-                    document.querySelector('#exampleModalLabel2').innerHTML = title;
-                    document.querySelector('#exampleModal2 .modal-body').innerHTML = desc;
+                    document.querySelector('#exampleModalLabel2').innerHTML = task_name + ' - 进度汇报';
+                    document.querySelector('#exampleModal2 .modal-body').innerHTML = taskComReportHTML(desc);
                 })
             })
         } else {
